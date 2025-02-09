@@ -1,4 +1,3 @@
-import json
 import random
 import string
 import datetime
@@ -6,10 +5,9 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import (
     ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 )
-from config import BOT_TOKEN, ADMIN_IDS
 
-USER_FILE = "users.json"
-KEY_FILE = "keys.json"
+BOT_TOKEN = "7601607062:AAH-pP3LQdjKwH8eGpiPV4vNef1SvRKFAzA"
+ADMIN_IDS = ["1240179115"]
 
 user_attacks = {}
 users = {}
@@ -17,40 +15,7 @@ keys = {}
 pending_key_requests = {}
 pending_target_requests = {}
 
-def load_data():
-    global users, keys
-    users = load_users()
-    keys = load_keys()
-
-def load_users():
-    try:
-        with open(USER_FILE, "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        return {}
-    except Exception as e:
-        print(f"Error loading users: {e}")
-        return {}
-
-def save_users():
-    with open(USER_FILE, "w") as file:
-        json.dump(users, file)
-
-def load_keys():
-    try:
-        with open(KEY_FILE, "r") as file:
-            return json.load(file)
-    except FileNotFoundError:
-        return {}
-    except Exception as e:
-        print(f"Error loading keys: {e}")
-        return {}
-
-def save_keys():
-    with open(KEY_FILE, "w") as file:
-        json.dump(keys, file)
-
-def generate_key(length=12):
+def generate_key(length=10):
     """Generates a random key of the given length."""
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters) for _ in range(length))
@@ -107,7 +72,6 @@ async def generate_and_show_key(update: Update, context: ContextTypes.DEFAULT_TY
             key = generate_key()
             
             keys[key] = expiration_time
-            save_keys()
 
             await update.message.reply_text(f"✅ Generated key: `{key}`\nValid until: {expiration_time}", parse_mode="Markdown")
             del pending_key_requests[user_id]
@@ -139,7 +103,6 @@ def main() -> None:
     application.add_handler(CommandHandler("help", show_help))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu_selection))
     
-    load_data()
     application.run_polling()
 
 if __name__ == '__main__':
